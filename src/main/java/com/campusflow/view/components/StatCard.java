@@ -7,83 +7,72 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
- * A modern SaaS-style metric card displaying a KPI value, title, icon badge,
- * and contextual subtitle.
+ * Enterprise SaaS KPI metric card.
+ * Features an accent indicator bar, uppercase category label, prominent numerical display,
+ * and contextual status subtitle with zero decorative emojis.
  */
 public class StatCard extends RoundedPanel {
+    private static final long serialVersionUID = 1L;
+
     private final JLabel titleLabel;
     private final JLabel valueLabel;
     private final JLabel subtitleLabel;
-    private final JPanel iconBadge;
-    private final JLabel iconLabel;
     private Color accentColor;
 
     public StatCard(String title, String value, Color accentColor) {
-        this(title, value, "", accentColor, "●");
+        this(title, value, "", accentColor, "");
+    }
+
+    public StatCard(String title, String value, String subtitle, Color accentColor) {
+        this(title, value, subtitle, accentColor, "");
     }
 
     public StatCard(String title, String value, String subtitle, Color accentColor, String iconText) {
-        super(16, AppConfig.CARD_COLOR, new Color(0xE2E8F0), 1);
-        this.accentColor = accentColor;
+        super(14, AppConfig.CARD_COLOR, new Color(0xE2E8F0), 1);
+        this.accentColor = accentColor != null ? accentColor : AppConfig.PRIMARY_COLOR;
 
-        setLayout(new BorderLayout(16, 0));
-        setBorder(new EmptyBorder(18, 20, 18, 20));
-        setPreferredSize(new Dimension(240, 110));
+        setLayout(new BorderLayout(0, 0));
+        setBorder(new EmptyBorder(16, 20, 16, 20));
+        setPreferredSize(new Dimension(240, 108));
 
-        // Left / Right Icon badge
-        iconBadge = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                Color badgeBg = new Color(
-                        accentColor.getRed(),
-                        accentColor.getGreen(),
-                        accentColor.getBlue(),
-                        35
-                );
-                g2.setColor(badgeBg);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
-        iconBadge.setOpaque(false);
-        iconBadge.setPreferredSize(new Dimension(50, 50));
-        iconBadge.setLayout(new GridBagLayout());
-
-        iconLabel = new JLabel(iconText);
-        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 22));
-        iconLabel.setForeground(accentColor);
-        iconBadge.add(iconLabel);
-
-        // Center Content (Title, Value, Subtitle)
         JPanel contentPanel = new JPanel();
         contentPanel.setOpaque(false);
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
 
-        titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
+        titleLabel = new JLabel(title != null ? title.toUpperCase() : "");
+        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 11));
         titleLabel.setForeground(AppConfig.TEXT_SECONDARY);
 
-        valueLabel = new JLabel(value);
+        valueLabel = new JLabel(value != null ? value : "0");
         valueLabel.setFont(new Font("SansSerif", Font.BOLD, 26));
         valueLabel.setForeground(AppConfig.TEXT_PRIMARY);
 
-        subtitleLabel = new JLabel(subtitle);
+        subtitleLabel = new JLabel(subtitle != null ? subtitle : "");
         subtitleLabel.setFont(AppConfig.FONT_SMALL);
         subtitleLabel.setForeground(new Color(0x64748B));
 
         contentPanel.add(titleLabel);
-        contentPanel.add(Box.createVerticalStrut(4));
+        contentPanel.add(Box.createVerticalStrut(6));
         contentPanel.add(valueLabel);
         if (subtitle != null && !subtitle.isBlank()) {
-            contentPanel.add(Box.createVerticalStrut(3));
+            contentPanel.add(Box.createVerticalStrut(4));
             contentPanel.add(subtitleLabel);
         }
 
         add(contentPanel, BorderLayout.CENTER);
-        add(iconBadge, BorderLayout.EAST);
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        if (accentColor != null) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(accentColor);
+            // Draw clean 3px accent top bar
+            g2.fillRoundRect(2, 2, getWidth() - 4, 3, 2, 2);
+            g2.dispose();
+        }
     }
 
     public void setValue(String value) {
@@ -95,13 +84,12 @@ public class StatCard extends RoundedPanel {
     }
 
     public void setTitle(String title) {
-        titleLabel.setText(title);
+        titleLabel.setText(title != null ? title.toUpperCase() : "");
     }
 
     public void setAccentColor(Color color) {
         this.accentColor = color;
-        iconLabel.setForeground(color);
-        iconBadge.repaint();
+        repaint();
     }
 
     public Color getAccentColor() {

@@ -1,183 +1,148 @@
-# CampusFlow — Smart College Management System
+# CampusFlow — College Management System
 
-> A professional desktop-based college management platform built with Core Java, Java Swing, JDBC, and MySQL.
-
----
-
-## Overview
-
-CampusFlow is a comprehensive Smart College Management System that provides **role-based dashboards** for Admins, Faculty, and Students. It strictly follows the **MVC (Model-View-Controller)** architectural pattern with clean layer separation (`View` → `Controller` → `Service` → `DAO` → `MySQL Database`). The UI is built using Java Swing with FlatLaf modern look-and-feel, rounded components, and responsive cards.
+A desktop application built using **Core Java**, **Java Swing**, **JDBC**, and **MySQL** for managing daily academic operations. CampusFlow provides dedicated portals for Administrators, Faculty, and Students to manage student records, course allocations, and attendance tracking completely offline without requiring internet or web servers.
 
 ---
 
-## Technology Stack
+## 📌 Features
 
-| Component            | Technology                        |
-|----------------------|-----------------------------------|
-| Language             | Java 17+ (JDK 25 runtime support) |
-| UI Framework         | Java Swing (Pure Desktop)         |
-| Database             | MySQL 8.x                         |
-| DB Connectivity      | JDBC (PreparedStatement & Txns)   |
-| Build Tool           | Apache Maven                      |
-| Password Hashing     | BCrypt via jBCrypt 0.4            |
-| Look & Feel          | FlatLaf 3.2.5 Modern SaaS Theme   |
+### 1. Administrator Portal
+* **Student Management:** Add, update, view, and delete student records with department and semester filters.
+* **Faculty Management:** Manage faculty profiles, designations, and department mappings.
+* **Course & Enrollment Management:** Create courses, assign faculty instructors, set seat limits, and enroll students.
+* **College Analytics:** View total active students, faculty count, and campus-wide average attendance.
+
+### 2. Faculty Portal
+* **Assigned Courses:** Displays only the courses assigned to the logged-in teacher.
+* **Daily Attendance Marking:** Mark student attendance per lecture as `Present`, `Absent`, `Late`, or `Excused`.
+* **Batch Database Updates:** Saves attendance for entire classes in a single batch database transaction.
+* **Grade Submission:** Enter and update internal grades for enrolled students.
+
+### 3. Student Portal
+* **Course Overview:** View all enrolled courses, credit hours, and assigned instructors.
+* **Live Attendance Tracking:** Calculates attendance percentage in real-time.
+* **75% Attendance Warning:** Displays a green "Good Standing" badge for $\ge 75\%$ attendance and a red alert badge for $< 75\%$ to warn students about semester examination eligibility.
+* **Class Schedule:** View weekly lecture timetables and timings.
 
 ---
 
-## Architecture & Project Structure
+## 🛠 Tech Stack
 
-CampusFlow strictly keeps SQL out of Swing views:
-```
-src/main/java/com/campusflow/
-├── config/           — Application & database configuration
-│   ├── AppConfig.java          — Design tokens, colors, fonts, global constants
-│   └── DatabaseConfig.java     — Centralized JDBC connection pool management
-│
-├── model/            — Entity classes (POJOs) & Report DTOs
-│   ├── User.java               — Authentication user (Admin, Faculty, Student)
-│   ├── Student.java            — Student profile (student_id, name, department, semester)
-│   ├── Faculty.java            — Faculty profile (faculty_id, name, designation, department)
-│   ├── Course.java             — Course entity (course_code, name, credits, faculty_id, max_students)
-│   ├── Enrollment.java         — Student enrollment record (status, grade)
-│   ├── Attendance.java         — Attendance record (status: PRESENT, ABSENT, LATE, LEAVE)
-│   └── report/
-│       ├── DefaulterReportItem.java  — Defaulter student item (< 75% attendance)
-│       ├── CourseEnrollmentStat.java — Course enrollment occupancy & capacity
-│       └── CourseAttendanceStat.java — Course-wise session counts and avg attendance
-│
-├── dao/              — Data Access Object interfaces
-│   ├── UserDAO.java, StudentDAO.java, FacultyDAO.java
-│   ├── CourseDAO.java, EnrollmentDAO.java, AttendanceDAO.java, ReportDAO.java
-│   └── impl/         — JDBC implementations using PreparedStatement
-│
-├── service/          — Transactional business logic & validation
-│   ├── AuthService.java        — Session lifecycle and BCrypt verification
-│   ├── StudentService.java      — Transactional student registration and duplicate prevention
-│   ├── FacultyService.java      — Transactional faculty registration and course check
-│   ├── CourseService.java       — Course creation, faculty assignment, capacity check
-│   ├── EnrollmentService.java   — Duplicate enrollment prevention & capacity validation
-│   ├── AttendanceService.java   — Role-based attendance marking and percentage calculation
-│   ├── ReportService.java       — Analytics, defaulter query, system metrics
-│   └── ServiceResult.java       — Standardized service response wrapper
-│
-├── controller/       — Application controllers
-│   └── AuthController.java     — Authentication lifecycle & dashboard switcher
-│
-├── view/             — Java Swing UI views & components
-│   ├── LoginView.java
-│   ├── AdminDashboardView.java
-│   ├── FacultyDashboardView.java
-│   ├── StudentDashboardView.java
-│   ├── components/   — ModernButton, RoundedPanel, Sidebar, StatCard, TopBar
-│   ├── student/      — StudentManagementPanel, StudentFormDialog, StudentProfileDialog
-│   ├── faculty/      — FacultyManagementPanel, FacultyFormDialog, FacultyProfileDialog
-│   ├── course/       — CourseManagementPanel, CourseFormDialog
-│   ├── enrollment/   — EnrollmentManagementPanel, EnrollStudentDialog
-│   ├── attendance/   — AttendanceManagementPanel, StudentAttendanceHistoryPanel
-│   └── reports/      — ReportsPanel (Defaulter Watchlist, Enrollment Stats, Attendance Analytics)
-│
-└── util/             — Utilities
-    ├── PasswordUtil.java       — BCrypt hashing & verification
-    ├── ValidationUtil.java     — Form validations (email, phone, student ID)
-    └── DatabaseSeeder.java     — Schema verification, migration & demo seed data
+* **Language:** Core Java (JDK 17+)
+* **User Interface:** Java Swing with FlatLaf (Modern Look and Feel)
+* **Architecture:** Model-View-Controller (MVC) Pattern
+* **Database:** MySQL 8.0 (InnoDB engine with Foreign Keys)
+* **Connectivity:** Pure JDBC API (`PreparedStatement`, Transactions with `commit`/`rollback`, and Batch Execution)
+* **Security:** jBCrypt (Salted password hashing)
+* **Build Tool:** Apache Maven
+
+---
+
+## 🏛 System Architecture (MVC)
+
+CampusFlow follows standard Model-View-Controller separation:
+* **Model (`com.campusflow.model`, `com.campusflow.dao`):** Java entity classes (`Student.java`, `Course.java`, `Attendance.java`) and Data Access Objects executing parameterized SQL queries.
+* **View (`com.campusflow.view`):** Swing screens and panels (`LoginView`, `AdminDashboardView`, `FacultyDashboardView`, `StudentDashboardView`).
+* **Controller / Service (`com.campusflow.service`):** Business logic layer (`AttendanceService`, `StudentService`, `AuthService`) validating inputs, managing transactions, and enforcing academic rules.
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+* Java Development Kit (JDK 17 or higher)
+* MySQL Server (8.0 or higher)
+* Apache Maven (3.8+)
+
+---
+
+### Step 1: Database Setup
+1. Start your local MySQL service.
+2. Open terminal and run the schema and seed scripts:
+```bash
+mysql -u root -p < database/schema.sql
+mysql -u root -p < database/seed.sql
 ```
 
 ---
 
-## Phase 2 Modules & Feature Implementation
-
-### Module A — Student & Faculty Management
-- **Full CRUD for Students:**
-  - Auto-generated or custom Student ID (`STU-001`, etc.).
-  - Duplicate email and student ID prevention.
-  - Search by name, ID, or email; filter by department and semester.
-  - Student Profile Modal displaying personal info, enrolled courses, and real attendance %.
-  - Relationship-safe deletion check.
-- **Full CRUD for Faculty:**
-  - Auto-generated or custom Faculty ID (`FAC-001`, etc.).
-  - Transactional user creation for faculty portal login.
-  - Search and filter by department.
-  - Faculty Profile Modal displaying teaching roster and enrolled student counts.
-  - Safe deletion preventing deletion of faculty assigned to active courses.
-
-### Module B — Course, Enrollment & Attendance
-- **Course Management:**
-  - Create and edit courses with Course Code, Course Name, Credits, Department, Faculty assignment, Max Students.
-  - Duplicate Course Code prevention.
-  - Relationship-safe deletion (cannot delete courses with enrolled students).
-- **Enrollment Management:**
-  - Enroll students into courses with duplicate enrollment prevention.
-  - Course capacity validation against `courses.max_students`.
-  - Drop students and update enrollment status (`ACTIVE`, `COMPLETED`, `DROPPED`) and grades.
-- **Attendance Management:**
-  - Role-based authorization: Faculty can record attendance only for their assigned courses; Admin can manage all.
-  - Interactive table supporting `PRESENT`, `ABSENT`, and `LEAVE`.
-  - Quick actions: "Mark All Present", "Mark All Absent", "Save Attendance".
-  - Duplicate prevention per student, course, and date using `INSERT ... ON DUPLICATE KEY UPDATE`.
-  - **Attendance Calculation Formula:**
-    $$\text{Attendance Percentage} = \frac{\text{Present Classes}}{\text{Eligible Conducted Classes}} \times 100$$
-    where:
-    $$\text{Eligible Conducted Classes} = \text{Total Classes Conducted} - \text{Excused Leaves}$$
-    If $\text{Eligible Conducted Classes} \le 0$, attendance rate defaults to $100.0\%$.
-
-### Module C — Authentication, Database & Reports
-- **BCrypt Authentication & Authorization:**
-  - Admin has global administration rights.
-  - Faculty accesses only assigned courses and class rosters.
-  - Students access only their personal enrollments, schedule, and attendance records.
-- **Real-Time Analytics & Reports (`ReportsPanel`):**
-  - **Tab 1: Defaulter Watchlist:** Real-time query identifying students with attendance strictly $< 75\%$ across courses.
-  - **Tab 2: Course Capacity & Enrollment:** Course occupancy rates, total seats vs enrolled seats.
-  - **Tab 3: Course Attendance Summary:** Conducted sessions and aggregate attendance percentages.
+### Step 2: Database Configuration
+Update your MySQL username and password in `src/main/resources/application.properties` (or set them via environment variables):
+```properties
+db.host=localhost
+db.port=3306
+db.name=campusflow_db
+db.username=root
+db.password=your_mysql_password
+```
 
 ---
 
-## Database Configuration
+### Step 3: Run the Application
 
-Default database settings in [DatabaseConfig.java](file:///f:/devlopment/CampusFlow/src/main/java/com/campusflow/config/DatabaseConfig.java):
+#### Option A: Run directly with Maven (Development)
+```bash
+mvn exec:java
+```
 
-| Parameter | Default Value | Override via System Property |
-|---|---|---|
-| Host | `localhost` | `-Ddb.host=...` |
-| Port | `3306` | `-Ddb.port=...` |
-| Database | `campusflow_db` | `-Ddb.name=...` |
-| User | `root` | `-Ddb.user=...` |
-| Password | `rootpass` | `-Ddb.password=...` |
+#### Option B: Run the standalone executable JAR
+```bash
+java -jar dist/CampusFlow.jar
+```
+
+#### Option C: Build from source
+```bash
+mvn clean package
+```
+This generates the standalone executable JAR inside the `dist/` directory.
 
 ---
 
-## Build & Run Instructions
+## 🔑 Demo Login Credentials
 
-### 1. Prerequisites
-- JDK 17 or higher (tested with JDK 25 on Windows)
-- Apache Maven 3.6+
-- MySQL 8.x service running on port 3306
+The database seeder includes ready-to-test accounts:
 
-### 2. Compile & Package
-```powershell
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-25.0.4.1"
-cd f:\devlopment\CampusFlow
-& "E:\apache-maven-3.10.0-bin\apache-maven-3.10.0\bin\mvn.cmd" clean compile -o
-& "C:\Program Files\Java\jdk-25.0.4.1\bin\jar.exe" --create --file "target/campusflow-1.0.0.jar" --main-class com.campusflow.Main -C "target/classes" .
+| Role | Username / Email | Password | Name / Access Scope |
+|---|---|---|---|
+| **Admin** | `admin` | `admin123` | System Administrator (Full Access) |
+| **Faculty** | `daulat` or `daulat@campusflow.com` | `faculty123` | Er. Daulat Ram (CSE Department) |
+| **Faculty** | `kiran` or `kiran@campusflow.com` | `faculty123` | Er. Kiranpreet Kaur (IT Department) |
+| **Student** | `mukul` or `mukul@campusflow.com` | `student123` | Mukul Anand (CSE, Semester 5) |
+| **Student** | `mehak` or `mehak@campusflow.com` | `student123` | Mehakpreet Kaur (CSE, Semester 5) |
+| **Student** | `divya` or `divya@campusflow.com` | `student123` | Divya Sharma (CSE, Semester 5) |
+
+---
+
+## 📂 Project Directory Structure
+
+```
+CampusFlow/
+├── src/
+│   ├── main/
+│   │   ├── java/com/campusflow/
+│   │   │   ├── config/          # Database configuration & credentials
+│   │   │   ├── dao/             # Pure JDBC Data Access Objects
+│   │   │   ├── model/           # POJO Data Models (Entities)
+│   │   │   ├── service/         # Business logic & validations
+│   │   │   ├── util/            # Password hashing (BCrypt), DB seeder
+│   │   │   └── view/            # Java Swing GUI views & dashboard panels
+│   │   └── resources/           # Application properties & icons
+├── database/
+│   ├── schema.sql               # Database tables, keys & constraints
+│   └── seed.sql                 # Sample Indian university dataset
+├── pom.xml                      # Maven project & dependency configuration
+└── README.md                    # Project documentation
 ```
 
-### 3. Run Live Integration Tests
-```powershell
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-25.0.4.1"
-& "C:\Program Files\Java\jdk-25.0.4.1\bin\java.exe" -cp "target/classes;target/test-classes;C:\Users\mukul\.m2\repository\com\mysql\mysql-connector-j\8.0.33\mysql-connector-j-8.0.33.jar;C:\Users\mukul\.m2\repository\org\mindrot\jbcrypt\0.4\jbcrypt-0.4.jar;C:\Users\mukul\.m2\repository\com\formdev\flatlaf\3.2.5\flatlaf-3.2.5.jar" com.campusflow.Phase2LiveIntegrationTest
-```
-*(All 15 integration tests pass cleanly).*
+---
 
-### 4. Run Desktop Application
-```powershell
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-25.0.4.1"
-& "C:\Program Files\Java\jdk-25.0.4.1\bin\java.exe" -cp "target/campusflow-1.0.0.jar;C:\Users\mukul\.m2\repository\com\mysql\mysql-connector-j\8.0.33\mysql-connector-j-8.0.33.jar;C:\Users\mukul\.m2\repository\org\mindrot\jbcrypt\0.4\jbcrypt-0.4.jar;C:\Users\mukul\.m2\repository\com\formdev\flatlaf\3.2.5\flatlaf-3.2.5.jar" com.campusflow.Main
-```
+## 👥 Project Team & Credits
 
-### 5. Demo Accounts
+**Department of Computer Science & Engineering**  
+**Chandigarh University**
 
-| Role | Username | Password |
-|---|---|---|
-| **Admin** | `admin` | `admin123` |
-| **Faculty** | `daulat` or `kiranpreet` | `faculty123` |
-| **Student** | `mukul` or `mehak` or `divya` | `student123` |
+* **Mukul Anand (24BCS10390)** — System Architecture, Database Schema, Pure JDBC DAO Layer, BCrypt Security & Build Packaging *(Team Lead)*
+* **Mehakpreet Kaur (24BCS11671)** — Student & Faculty Management Modules, Form Validations & Search Filters
+* **Divya Sharma (24BCS11668)** — Course Catalog, Student Enrollment System, Attendance Engine & 75% Rule Calculation
+
+**Project Supervisor:** Er. Daulat Ram (E13701)

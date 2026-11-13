@@ -66,19 +66,19 @@ public class StudentManagementPanel extends JPanel {
         JPanel actionBtns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         actionBtns.setOpaque(false);
 
-        ModernButton addBtn = ModernButton.primary("+ Add Student");
+        ModernButton addBtn = ModernButton.primary("Add Student");
         addBtn.addActionListener(e -> openStudentForm(null));
 
-        ModernButton editBtn = ModernButton.secondary("✎ Edit");
+        ModernButton editBtn = ModernButton.secondary("Edit Student");
         editBtn.addActionListener(e -> editSelectedStudent());
 
-        ModernButton profileBtn = ModernButton.accent("👁 View Profile");
+        ModernButton profileBtn = ModernButton.accent("View Profile");
         profileBtn.addActionListener(e -> viewSelectedProfile());
 
-        ModernButton deleteBtn = ModernButton.danger("🗑 Delete");
+        ModernButton deleteBtn = ModernButton.danger("Delete");
         deleteBtn.addActionListener(e -> deleteSelectedStudent());
 
-        ModernButton refreshBtn = ModernButton.outline("↻", AppConfig.PRIMARY_COLOR);
+        ModernButton refreshBtn = ModernButton.outline("Refresh", AppConfig.PRIMARY_COLOR);
         refreshBtn.setToolTipText("Refresh Directory");
         refreshBtn.addActionListener(e -> loadStudents());
 

@@ -83,7 +83,7 @@ public class StudentProfileDialog extends JDialog {
         idLabel.setFont(AppConfig.FONT_MEDIUM);
         idLabel.setForeground(AppConfig.TEXT_SECONDARY);
 
-        JLabel contactLabel = new JLabel("✉ " + student.getEmail() + "    ☎ " + (student.getPhone() != null ? student.getPhone() : "N/A"));
+        JLabel contactLabel = new JLabel("Email: " + student.getEmail() + "  •  Phone: " + (student.getPhone() != null ? student.getPhone() : "N/A"));
         contactLabel.setFont(AppConfig.FONT_SMALL);
         contactLabel.setForeground(AppConfig.TEXT_SECONDARY);
 

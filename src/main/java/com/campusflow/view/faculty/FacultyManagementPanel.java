@@ -65,19 +65,19 @@ public class FacultyManagementPanel extends JPanel {
         JPanel actionBtns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         actionBtns.setOpaque(false);
 
-        ModernButton addBtn = ModernButton.primary("+ Add Faculty");
+        ModernButton addBtn = ModernButton.primary("Add Faculty");
         addBtn.addActionListener(e -> openFacultyForm(null));
 
-        ModernButton editBtn = ModernButton.secondary("✎ Edit");
+        ModernButton editBtn = ModernButton.secondary("Edit Faculty");
         editBtn.addActionListener(e -> editSelectedFaculty());
 
-        ModernButton profileBtn = ModernButton.accent("👁 View Profile");
+        ModernButton profileBtn = ModernButton.accent("View Profile");
         profileBtn.addActionListener(e -> viewSelectedProfile());
 
-        ModernButton deleteBtn = ModernButton.danger("🗑 Delete");
+        ModernButton deleteBtn = ModernButton.danger("Delete");
         deleteBtn.addActionListener(e -> deleteSelectedFaculty());
 
-        ModernButton refreshBtn = ModernButton.outline("↻", AppConfig.PRIMARY_COLOR);
+        ModernButton refreshBtn = ModernButton.outline("Refresh", AppConfig.PRIMARY_COLOR);
         refreshBtn.setToolTipText("Refresh Directory");
         refreshBtn.addActionListener(e -> loadFaculty());
 

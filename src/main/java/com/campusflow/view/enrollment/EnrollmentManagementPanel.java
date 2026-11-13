@@ -92,16 +92,16 @@ public class EnrollmentManagementPanel extends JPanel {
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         actions.setOpaque(false);
 
-        ModernButton enrollBtn = ModernButton.primary("+ Enroll Student");
+        ModernButton enrollBtn = ModernButton.primary("Enroll Student");
         enrollBtn.addActionListener(e -> openEnrollDialog());
 
-        ModernButton updateBtn = ModernButton.secondary("✎ Update Status");
+        ModernButton updateBtn = ModernButton.secondary("Update Status");
         updateBtn.addActionListener(e -> updateSelectedStatus());
 
-        ModernButton dropBtn = ModernButton.danger("🗑 Drop");
+        ModernButton dropBtn = ModernButton.danger("Drop");
         dropBtn.addActionListener(e -> dropSelectedStudent());
 
-        ModernButton refreshBtn = ModernButton.outline("↻", AppConfig.PRIMARY_COLOR);
+        ModernButton refreshBtn = ModernButton.outline("Refresh", AppConfig.PRIMARY_COLOR);
         refreshBtn.addActionListener(e -> loadEnrollmentsForSelectedCourse());
 
         actions.add(enrollBtn);

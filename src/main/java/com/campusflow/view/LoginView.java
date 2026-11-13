@@ -126,8 +126,8 @@ public class LoginView extends JFrame {
             fRow.setOpaque(false);
             fRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-            JLabel check = new JLabel("✓");
-            check.setFont(new Font("SansSerif", Font.BOLD, 14));
+            JLabel check = new JLabel("•");
+            check.setFont(new Font("SansSerif", Font.BOLD, 18));
             check.setForeground(AppConfig.ACCENT_COLOR);
 
             JLabel txt = new JLabel(feat);
@@ -305,7 +305,7 @@ public class LoginView extends JFrame {
     }
 
     public void showError(String message) {
-        errorLabel.setText("⚠ " + message);
+        errorLabel.setText(message != null ? message : "");
     }
 
     public void clearError() {

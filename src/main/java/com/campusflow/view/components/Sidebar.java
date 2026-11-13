@@ -12,10 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A sleek vertical navigation sidebar styled with a modern dark SaaS theme.
- * Supports role-based navigation links, active states, and a logout action.
+ * Enterprise navigation sidebar with clean typography, active pill indicator,
+ * and role-based navigation without emojis.
  */
 public class Sidebar extends JPanel {
+    private static final long serialVersionUID = 1L;
+
     public interface NavigationListener {
         void onNavigate(String itemKey);
     }
@@ -30,7 +32,7 @@ public class Sidebar extends JPanel {
         this.role = role;
         this.logoutCallback = logoutCallback;
 
-        setPreferredSize(new Dimension(240, 0));
+        setPreferredSize(new Dimension(250, 0));
         setBackground(AppConfig.SIDEBAR_BG);
         setLayout(new BorderLayout());
 
@@ -42,47 +44,47 @@ public class Sidebar extends JPanel {
         JPanel headerPanel = new JPanel();
         headerPanel.setOpaque(false);
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
-        headerPanel.setBorder(new EmptyBorder(28, 22, 24, 22));
+        headerPanel.setBorder(new EmptyBorder(26, 18, 22, 18));
 
         JPanel brandRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         brandRow.setOpaque(false);
 
         // Logo icon badge
         JPanel logoBadge = new JPanel() {
+            private static final long serialVersionUID = 1L;
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(AppConfig.ACCENT_COLOR);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
                 g2.dispose();
                 super.paintComponent(g);
             }
         };
         logoBadge.setOpaque(false);
-        logoBadge.setPreferredSize(new Dimension(34, 34));
+        logoBadge.setPreferredSize(new Dimension(32, 32));
         logoBadge.setLayout(new GridBagLayout());
         JLabel logoSymbol = new JLabel("CF");
-        logoSymbol.setFont(new Font("SansSerif", Font.BOLD, 15));
+        logoSymbol.setFont(new Font("SansSerif", Font.BOLD, 14));
         logoSymbol.setForeground(Color.WHITE);
         logoBadge.add(logoSymbol);
         brandRow.add(logoBadge);
 
         JLabel brandTitle = new JLabel(AppConfig.APP_NAME);
-        brandTitle.setFont(new Font("SansSerif", Font.BOLD, 20));
+        brandTitle.setFont(new Font("SansSerif", Font.BOLD, 19));
         brandTitle.setForeground(Color.WHITE);
         brandRow.add(brandTitle);
 
         headerPanel.add(brandRow);
         headerPanel.add(Box.createVerticalStrut(6));
 
-        JLabel brandSubtitle = new JLabel("COLLEGE MANAGEMENT");
-        brandSubtitle.setFont(new Font("SansSerif", Font.BOLD, 9));
+        JLabel brandSubtitle = new JLabel("COLLEGE MANAGEMENT SYSTEM");
+        brandSubtitle.setFont(new Font("SansSerif", Font.BOLD, 8));
         brandSubtitle.setForeground(new Color(0x94A3B8));
         brandSubtitle.setBorder(new EmptyBorder(0, 4, 0, 0));
         headerPanel.add(brandSubtitle);
 
-        // Subtle separator
         JSeparator sep = new JSeparator();
         sep.setForeground(new Color(0x334E68));
         sep.setMaximumSize(new Dimension(200, 1));
@@ -95,25 +97,22 @@ public class Sidebar extends JPanel {
         JPanel navListPanel = new JPanel();
         navListPanel.setOpaque(false);
         navListPanel.setLayout(new BoxLayout(navListPanel, BoxLayout.Y_AXIS));
-        navListPanel.setBorder(new EmptyBorder(8, 14, 8, 14));
+        navListPanel.setBorder(new EmptyBorder(8, 12, 8, 12));
 
-        String[][] items = getNavItemsForRole(role);
-        for (String[] it : items) {
-            String key = it[0];
-            String icon = it[1];
-            NavItemButton btn = new NavItemButton(key, icon);
+        String[] items = getNavItemsForRole(role);
+        for (String itemKey : items) {
+            NavItemButton btn = new NavItemButton(itemKey);
             navButtons.add(btn);
             navListPanel.add(btn);
-            navListPanel.add(Box.createVerticalStrut(6));
+            navListPanel.add(Box.createVerticalStrut(4));
         }
 
-        // Fill remaining space
         JPanel centerWrapper = new JPanel(new BorderLayout());
         centerWrapper.setOpaque(false);
         centerWrapper.add(navListPanel, BorderLayout.NORTH);
         add(centerWrapper, BorderLayout.CENTER);
 
-        // --- BOTTOM USER & LOGOUT SECTION ---
+        // --- BOTTOM LOGOUT SECTION ---
         JPanel bottomPanel = new JPanel();
         bottomPanel.setOpaque(false);
         bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.Y_AXIS));
@@ -125,13 +124,13 @@ public class Sidebar extends JPanel {
         bottomPanel.add(Box.createVerticalStrut(14));
 
         ModernButton logoutBtn = new ModernButton(
-                "⎋  Sign Out",
+                "Sign Out",
                 new Color(0x2D3748),
                 new Color(0xFEB2B2),
-                10
+                8
         );
         logoutBtn.setFont(AppConfig.FONT_MEDIUM);
-        logoutBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        logoutBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         logoutBtn.addActionListener(e -> {
             if (logoutCallback != null) {
                 logoutCallback.run();
@@ -141,36 +140,35 @@ public class Sidebar extends JPanel {
 
         add(bottomPanel, BorderLayout.SOUTH);
 
-        // Mark default active item
         setActiveItem("Dashboard");
     }
 
-    private String[][] getNavItemsForRole(User.Role r) {
-        if (r == null) return new String[][]{{"Dashboard", "📊"}};
+    private String[] getNavItemsForRole(User.Role r) {
+        if (r == null) return new String[]{"Dashboard"};
         return switch (r) {
-            case ADMIN -> new String[][]{
-                    {"Dashboard", "📊"},
-                    {"Students", "🎓"},
-                    {"Faculty", "👨‍🏫"},
-                    {"Courses", "📚"},
-                    {"Enrollments", "📋"},
-                    {"Attendance", "✓"},
-                    {"Reports", "📈"},
-                    {"Settings", "⚙"}
+            case ADMIN -> new String[]{
+                    "Dashboard",
+                    "Students",
+                    "Faculty",
+                    "Courses",
+                    "Enrollments",
+                    "Attendance",
+                    "Reports",
+                    "Settings"
             };
-            case FACULTY -> new String[][]{
-                    {"Dashboard", "📊"},
-                    {"My Courses", "📚"},
-                    {"Attendance", "✓"},
-                    {"Students", "🎓"},
-                    {"Grades", "📝"}
+            case FACULTY -> new String[]{
+                    "Dashboard",
+                    "My Courses",
+                    "Attendance",
+                    "Students",
+                    "Grades"
             };
-            case STUDENT -> new String[][]{
-                    {"Dashboard", "📊"},
-                    {"My Courses", "📚"},
-                    {"Attendance", "✓"},
-                    {"Schedule", "📅"},
-                    {"Profile", "👤"}
+            case STUDENT -> new String[]{
+                    "Dashboard",
+                    "My Courses",
+                    "Attendance",
+                    "Schedule",
+                    "Profile"
             };
         };
     }
@@ -192,32 +190,31 @@ public class Sidebar extends JPanel {
     }
 
     /**
-     * Inner navigation button component with active highlighting and hover animations.
+     * Inner navigation button component with active left accent bar and hover state.
      */
     private class NavItemButton extends JPanel {
+        private static final long serialVersionUID = 1L;
         private final String itemKey;
         private boolean active = false;
         private boolean hovered = false;
         private final JLabel label;
-        private final JLabel icon;
 
-        public NavItemButton(String itemKey, String iconText) {
+        public NavItemButton(String itemKey) {
+            this(itemKey, "");
+        }
+
+        public NavItemButton(String itemKey, String iconTextIgnored) {
             this.itemKey = itemKey;
 
             setOpaque(false);
-            setLayout(new FlowLayout(FlowLayout.LEFT, 14, 10));
+            setLayout(new FlowLayout(FlowLayout.LEFT, 16, 10));
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
-
-            icon = new JLabel(iconText);
-            icon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
-            icon.setForeground(AppConfig.SIDEBAR_TEXT);
+            setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
 
             label = new JLabel(itemKey);
             label.setFont(new Font("SansSerif", Font.PLAIN, 14));
             label.setForeground(AppConfig.SIDEBAR_TEXT);
 
-            add(icon);
             add(label);
 
             addMouseListener(new MouseAdapter() {
@@ -243,22 +240,15 @@ public class Sidebar extends JPanel {
             });
         }
 
-        public String getItemKey() {
-            return itemKey;
-        }
-
         public void setActive(boolean active) {
             this.active = active;
-            if (active) {
-                label.setForeground(Color.WHITE);
-                label.setFont(new Font("SansSerif", Font.BOLD, 14));
-                icon.setForeground(AppConfig.ACCENT_COLOR);
-            } else {
-                label.setForeground(AppConfig.SIDEBAR_TEXT);
-                label.setFont(new Font("SansSerif", Font.PLAIN, 14));
-                icon.setForeground(AppConfig.SIDEBAR_TEXT);
-            }
+            label.setFont(new Font("SansSerif", active ? Font.BOLD : Font.PLAIN, 14));
+            label.setForeground(active ? Color.WHITE : (hovered ? new Color(0xF1F5F9) : AppConfig.SIDEBAR_TEXT));
             repaint();
+        }
+
+        public String getItemKey() {
+            return itemKey;
         }
 
         @Override
@@ -266,20 +256,16 @@ public class Sidebar extends JPanel {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            int width = getWidth();
-            int height = getHeight();
-
             if (active) {
-                // Active pill background
-                g2.setColor(new Color(0x2D5986));
-                g2.fillRoundRect(0, 0, width, height, 10, 10);
-
-                // Left active accent indicator bar
+                // Background fill
+                g2.setColor(new Color(0x334155));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                // Active indicator pill on left edge
                 g2.setColor(AppConfig.ACCENT_COLOR);
-                g2.fillRoundRect(0, 6, 4, height - 12, 4, 4);
+                g2.fillRoundRect(2, 6, 4, getHeight() - 12, 4, 4);
             } else if (hovered) {
-                g2.setColor(new Color(255, 255, 255, 18));
-                g2.fillRoundRect(0, 0, width, height, 10, 10);
+                g2.setColor(new Color(0x1E293B));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
             }
 
             g2.dispose();

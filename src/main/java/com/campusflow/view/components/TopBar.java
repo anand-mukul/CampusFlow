@@ -62,12 +62,13 @@ public class TopBar extends JPanel {
         rightPanel.setOpaque(false);
 
         // Role badge pill
-        roleBadge = new JLabel(role != null ? role.name() : "GUEST") {
+        roleBadge = new JLabel(this.role != null ? this.role.name() : "GUEST") {
+            private static final long serialVersionUID = 1L;
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                Color badgeBg = getRoleBadgeColor(role);
+                Color badgeBg = getRoleBadgeColor(TopBar.this.role);
                 g2.setColor(badgeBg);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
                 g2.dispose();

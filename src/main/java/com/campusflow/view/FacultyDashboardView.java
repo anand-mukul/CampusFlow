@@ -1,6 +1,10 @@
 package com.campusflow.view;
 
 import com.campusflow.config.AppConfig;
+import com.campusflow.dao.AttendanceDAO;
+import com.campusflow.dao.CourseDAO;
+import com.campusflow.dao.impl.AttendanceDAOImpl;
+import com.campusflow.dao.impl.CourseDAOImpl;
 import com.campusflow.model.Course;
 import com.campusflow.model.Faculty;
 import com.campusflow.model.User;
@@ -21,19 +25,23 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 /**
  * Faculty Dashboard View.
  * Displays instructor courses, class rosters, attendance overview,
- * and academic management actions.
+ * and academic management actions with real-time database calculations.
  */
 public class FacultyDashboardView extends JFrame {
+    private static final long serialVersionUID = 1L;
 
     private final User currentUser;
     private final Runnable logoutCallback;
     private final FacultyService facultyService;
     private final CourseService courseService;
+    private final CourseDAO courseDAO;
+    private final AttendanceDAO attendanceDAO;
 
     private Faculty facultyProfile;
     private Sidebar sidebar;
@@ -48,7 +56,8 @@ public class FacultyDashboardView extends JFrame {
     private StatCard deptStatCard;
 
     // Table
-    private JTable coursesTable;
+    private JTable overviewCoursesTable;
+    private JTable fullCoursesTable;
     private DefaultTableModel coursesTableModel;
 
     public FacultyDashboardView(User currentUser, Runnable logoutCallback) {
@@ -56,12 +65,15 @@ public class FacultyDashboardView extends JFrame {
         this.logoutCallback = logoutCallback;
         this.facultyService = new FacultyService();
         this.courseService = new CourseService();
+        this.courseDAO = new CourseDAOImpl();
+        this.attendanceDAO = new AttendanceDAOImpl();
 
         setTitle(AppConfig.APP_NAME + " - Faculty Portal");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1180, 760);
-        setMinimumSize(new Dimension(980, 620));
+        setSize(1280, 800);
+        setMinimumSize(new Dimension(1024, 680));
         setLocationRelativeTo(null);
+        setBackground(AppConfig.BACKGROUND_COLOR);
 
         initUI();
         loadData();
@@ -93,8 +105,7 @@ public class FacultyDashboardView extends JFrame {
         mainCardContainer.add(createCoursesPanel(), "My Courses");
         mainCardContainer.add(new AttendanceManagementPanel(currentUser), "Attendance");
         mainCardContainer.add(new EnrollmentManagementPanel(currentUser), "Students");
-        mainCardContainer.add(new EnrollmentManagementPanel(currentUser), "Enrollments");
-        mainCardContainer.add(createPlaceholderPanel("Grading & Evaluation", "Enter mid-term and final exam grades and grade curve calculations."), "Grades");
+        mainCardContainer.add(new EnrollmentManagementPanel(currentUser), "Grades");
 
         rightPanel.add(mainCardContainer, BorderLayout.CENTER);
         root.add(rightPanel, BorderLayout.CENTER);
@@ -116,10 +127,10 @@ public class FacultyDashboardView extends JFrame {
         JPanel statsRow = new JPanel(new GridLayout(1, 4, 16, 0));
         statsRow.setOpaque(false);
 
-        coursesStatCard = new StatCard("ASSIGNED COURSES", "0", "Current semester", AppConfig.PRIMARY_COLOR, "📚");
-        studentsStatCard = new StatCard("STUDENTS TAUGHT", "0", "Active enrollments", AppConfig.SECONDARY_COLOR, "👥");
-        attendanceStatCard = new StatCard("AVG ATTENDANCE", "92%", "Last 30 days", AppConfig.SUCCESS_COLOR, "✓");
-        deptStatCard = new StatCard("DEPARTMENT", "General", "Faculty of Engineering", AppConfig.ACCENT_COLOR, "🏫");
+        coursesStatCard = new StatCard("ASSIGNED COURSES", "0", "Current semester", AppConfig.PRIMARY_COLOR);
+        studentsStatCard = new StatCard("STUDENTS TAUGHT", "0", "Active enrollments", AppConfig.SECONDARY_COLOR);
+        attendanceStatCard = new StatCard("AVG ATTENDANCE", "0.0%", "Academic average", AppConfig.SUCCESS_COLOR);
+        deptStatCard = new StatCard("DEPARTMENT", "General", "Faculty Department", AppConfig.ACCENT_COLOR);
 
         statsRow.add(coursesStatCard);
         statsRow.add(studentsStatCard);
@@ -137,26 +148,26 @@ public class FacultyDashboardView extends JFrame {
         actionsCard.setLayout(new BorderLayout());
         actionsCard.setBorder(new EmptyBorder(12, 18, 12, 18));
 
-        JLabel actionsTitle = new JLabel("Academic Tools");
+        JLabel actionsTitle = new JLabel("Academic Management");
         actionsTitle.setFont(AppConfig.FONT_TITLE);
         actionsTitle.setForeground(AppConfig.TEXT_PRIMARY);
 
         JPanel btnBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         btnBar.setOpaque(false);
 
-        ModernButton markAttBtn = ModernButton.primary("✓ Mark Attendance");
+        ModernButton markAttBtn = ModernButton.primary("Mark Attendance");
         markAttBtn.addActionListener(e -> {
             sidebar.setActiveItem("Attendance");
             onNavSelected("Attendance");
         });
 
-        ModernButton enterGradesBtn = ModernButton.secondary("📝 Enter Grades");
+        ModernButton enterGradesBtn = ModernButton.secondary("Enter Grades");
         enterGradesBtn.addActionListener(e -> {
-            sidebar.setActiveItem("Students");
-            onNavSelected("Students");
+            sidebar.setActiveItem("Grades");
+            onNavSelected("Grades");
         });
 
-        ModernButton refreshBtn = ModernButton.outline("↻ Refresh", AppConfig.PRIMARY_COLOR);
+        ModernButton refreshBtn = ModernButton.outline("Refresh", AppConfig.PRIMARY_COLOR);
         refreshBtn.addActionListener(e -> loadData());
 
         btnBar.add(markAttBtn);
@@ -167,30 +178,44 @@ public class FacultyDashboardView extends JFrame {
         actionsCard.add(btnBar, BorderLayout.EAST);
         centerPanel.add(actionsCard, BorderLayout.NORTH);
 
-        // Assigned Courses Table Card
+        // My Courses Summary Card
         RoundedPanel tableCard = new RoundedPanel(14, Color.WHITE, new Color(0xE2E8F0));
         tableCard.setLayout(new BorderLayout(0, 12));
-        tableCard.setBorder(new EmptyBorder(16, 18, 16, 18));
+        tableCard.setBorder(new EmptyBorder(16, 20, 16, 20));
 
-        JLabel tableTitle = new JLabel("My Assigned Courses");
-        tableTitle.setFont(new Font("SansSerif", Font.BOLD, 16));
+        JPanel tableHeader = new JPanel(new BorderLayout());
+        tableHeader.setOpaque(false);
+
+        JLabel tableTitle = new JLabel("Assigned Course Sections");
+        tableTitle.setFont(AppConfig.FONT_TITLE);
         tableTitle.setForeground(AppConfig.TEXT_PRIMARY);
-        tableCard.add(tableTitle, BorderLayout.NORTH);
 
-        String[] cols = {"Course Code", "Course Title", "Credits", "Department", "Max Enrolled"};
+        ModernButton viewAllBtn = ModernButton.outline("View Full Directory", AppConfig.PRIMARY_COLOR);
+        viewAllBtn.addActionListener(e -> {
+            sidebar.setActiveItem("My Courses");
+            onNavSelected("My Courses");
+        });
+
+        tableHeader.add(tableTitle, BorderLayout.WEST);
+        tableHeader.add(viewAllBtn, BorderLayout.EAST);
+        tableCard.add(tableHeader, BorderLayout.NORTH);
+
+        String[] cols = {"Course Code", "Course Name", "Credits", "Department", "Capacity"};
         coursesTableModel = new DefaultTableModel(cols, 0) {
+            private static final long serialVersionUID = 1L;
             @Override
-            public boolean isCellEditable(int row, int col) {
+            public boolean isCellEditable(int r, int c) {
                 return false;
             }
         };
-        coursesTable = new JTable(coursesTableModel);
-        styleTable(coursesTable);
 
-        JScrollPane scrollPane = new JScrollPane(coursesTable);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.getViewport().setBackground(Color.WHITE);
-        tableCard.add(scrollPane, BorderLayout.CENTER);
+        overviewCoursesTable = new JTable(coursesTableModel);
+        styleTable(overviewCoursesTable);
+
+        JScrollPane scroll = new JScrollPane(overviewCoursesTable);
+        scroll.setBorder(BorderFactory.createLineBorder(new Color(0xE2E8F0), 1));
+        scroll.getViewport().setBackground(Color.WHITE);
+        tableCard.add(scroll, BorderLayout.CENTER);
 
         centerPanel.add(tableCard, BorderLayout.CENTER);
         panel.add(centerPanel, BorderLayout.CENTER);
@@ -199,61 +224,49 @@ public class FacultyDashboardView extends JFrame {
     }
 
     private JPanel createCoursesPanel() {
-        JPanel panel = new JPanel(new BorderLayout(0, 14));
+        JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(AppConfig.BACKGROUND_COLOR);
         panel.setBorder(new EmptyBorder(20, 24, 24, 24));
 
         RoundedPanel card = new RoundedPanel(14, Color.WHITE, new Color(0xE2E8F0));
-        card.setLayout(new BorderLayout(0, 12));
+        card.setLayout(new BorderLayout(0, 14));
         card.setBorder(new EmptyBorder(18, 20, 18, 20));
 
-        JLabel title = new JLabel("Faculty Course Schedule");
-        title.setFont(AppConfig.FONT_TITLE);
-        title.setForeground(AppConfig.TEXT_PRIMARY);
-        card.add(title, BorderLayout.NORTH);
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
 
-        JScrollPane scroll = new JScrollPane(coursesTable);
-        scroll.setBorder(BorderFactory.createEmptyBorder());
+        JLabel title = new JLabel("My Assigned Courses");
+        title.setFont(new Font("SansSerif", Font.BOLD, 20));
+        title.setForeground(AppConfig.TEXT_PRIMARY);
+
+        JPanel btnBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        btnBar.setOpaque(false);
+
+        ModernButton markAttBtn = ModernButton.primary("Mark Attendance");
+        markAttBtn.addActionListener(e -> {
+            sidebar.setActiveItem("Attendance");
+            onNavSelected("Attendance");
+        });
+
+        ModernButton refreshBtn = ModernButton.outline("Refresh", AppConfig.PRIMARY_COLOR);
+        refreshBtn.addActionListener(e -> loadData());
+
+        btnBar.add(markAttBtn);
+        btnBar.add(refreshBtn);
+
+        header.add(title, BorderLayout.WEST);
+        header.add(btnBar, BorderLayout.EAST);
+        card.add(header, BorderLayout.NORTH);
+
+        fullCoursesTable = new JTable(coursesTableModel);
+        styleTable(fullCoursesTable);
+
+        JScrollPane scroll = new JScrollPane(fullCoursesTable);
+        scroll.setBorder(BorderFactory.createLineBorder(new Color(0xE2E8F0), 1));
         scroll.getViewport().setBackground(Color.WHITE);
         card.add(scroll, BorderLayout.CENTER);
 
         panel.add(card, BorderLayout.CENTER);
-        return panel;
-    }
-
-    private JPanel createPlaceholderPanel(String titleText, String descText) {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(AppConfig.BACKGROUND_COLOR);
-
-        RoundedPanel card = new RoundedPanel(16, Color.WHITE, new Color(0xE2E8F0));
-        card.setPreferredSize(new Dimension(520, 260));
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(new EmptyBorder(36, 36, 36, 36));
-
-        JLabel title = new JLabel(titleText);
-        title.setFont(new Font("SansSerif", Font.BOLD, 22));
-        title.setForeground(AppConfig.TEXT_PRIMARY);
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JLabel desc = new JLabel("<html><center>" + descText + "<br><br><b>CampusFlow Phase 2 Feature</b></center></html>");
-        desc.setFont(AppConfig.FONT_MEDIUM);
-        desc.setForeground(AppConfig.TEXT_SECONDARY);
-        desc.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        ModernButton btn = ModernButton.primary("Back to Dashboard");
-        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btn.addActionListener(e -> {
-            sidebar.setActiveItem("Dashboard");
-            onNavSelected("Dashboard");
-        });
-
-        card.add(title);
-        card.add(Box.createVerticalStrut(14));
-        card.add(desc);
-        card.add(Box.createVerticalStrut(24));
-        card.add(btn);
-
-        panel.add(card);
         return panel;
     }
 
@@ -263,6 +276,8 @@ public class FacultyDashboardView extends JFrame {
             String facultyName = currentUser.getUsername();
             String department = "General";
             String designation = "Faculty";
+            int totalEnrolledStudents = 0;
+            double avgAttendance = 0.0;
 
             @Override
             protected Void doInBackground() {
@@ -277,6 +292,26 @@ public class FacultyDashboardView extends JFrame {
                     } else {
                         courses = courseService.getAllCourses();
                     }
+
+                    // Compute real enrolled student count and average attendance across assigned courses
+                    int studentSum = 0;
+                    double attSum = 0.0;
+                    int attCount = 0;
+                    for (Course c : courses) {
+                        studentSum += courseDAO.getEnrolledCount(c.getId());
+                        List<com.campusflow.model.Attendance> atts = attendanceDAO.findByCourseId(c.getId());
+                        if (!atts.isEmpty()) {
+                            long pres = atts.stream().filter(a -> "PRESENT".equalsIgnoreCase(a.getStatus())).count();
+                            long eligible = atts.stream().filter(a -> !"LEAVE".equalsIgnoreCase(a.getStatus())).count();
+                            if (eligible > 0) {
+                                attSum += (pres * 100.0) / eligible;
+                                attCount++;
+                            }
+                        }
+                    }
+                    totalEnrolledStudents = studentSum;
+                    avgAttendance = attCount > 0 ? (attSum / attCount) : 0.0;
+
                 } catch (Exception ex) {
                     System.err.println("Faculty load data error: " + ex.getMessage());
                 }
@@ -287,7 +322,11 @@ public class FacultyDashboardView extends JFrame {
             protected void done() {
                 topBar.updateUserInfo(facultyName, User.Role.FACULTY);
                 coursesStatCard.setValue(String.valueOf(courses.size()));
-                studentsStatCard.setValue(String.valueOf(courses.size() * 30));
+                studentsStatCard.setValue(String.valueOf(totalEnrolledStudents));
+                attendanceStatCard.setValue(String.format(Locale.US, "%.1f%%", avgAttendance));
+                attendanceStatCard.setSubtitle(avgAttendance >= 75.0 ? "Good Standing (>= 75%)" : (courses.isEmpty() ? "No active sessions" : "Deficit Warning (< 75%)"));
+                attendanceStatCard.setAccentColor(avgAttendance >= 75.0 ? AppConfig.SUCCESS_COLOR : (courses.isEmpty() ? AppConfig.TEXT_SECONDARY : AppConfig.DANGER_COLOR));
+
                 deptStatCard.setValue(department != null ? department : "General");
                 deptStatCard.setSubtitle(designation != null ? designation : "Faculty");
 
@@ -296,14 +335,23 @@ public class FacultyDashboardView extends JFrame {
                     coursesTableModel.addRow(new Object[]{"-", "No courses assigned", "-", "-", "-"});
                 } else {
                     for (Course c : courses) {
+                        int enrolled = courseDAO.getEnrolledCount(c.getId());
                         coursesTableModel.addRow(new Object[]{
                                 c.getCourseCode(),
                                 c.getCourseName(),
                                 c.getCredits() + " Credits",
                                 c.getDepartment(),
-                                c.getMaxStudents() + " Students"
+                                enrolled + " / " + c.getMaxStudents()
                         });
                     }
+                }
+                if (overviewCoursesTable != null) {
+                    overviewCoursesTable.revalidate();
+                    overviewCoursesTable.repaint();
+                }
+                if (fullCoursesTable != null) {
+                    fullCoursesTable.revalidate();
+                    fullCoursesTable.repaint();
                 }
             }
         };
@@ -326,6 +374,7 @@ public class FacultyDashboardView extends JFrame {
         header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(0xE2E8F0)));
 
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            private static final long serialVersionUID = 1L;
             @Override
             public Component getTableCellRendererComponent(
                     JTable t, Object val, boolean isSelected, boolean hasFocus, int row, int col) {

@@ -72,16 +72,16 @@ public class CourseManagementPanel extends JPanel {
         JPanel actionBtns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         actionBtns.setOpaque(false);
 
-        ModernButton addBtn = ModernButton.primary("+ Add Course");
+        ModernButton addBtn = ModernButton.primary("Add Course");
         addBtn.addActionListener(e -> openCourseForm(null));
 
-        ModernButton editBtn = ModernButton.secondary("✎ Edit Course");
+        ModernButton editBtn = ModernButton.secondary("Edit Course");
         editBtn.addActionListener(e -> editSelectedCourse());
 
-        ModernButton deleteBtn = ModernButton.danger("🗑 Delete");
+        ModernButton deleteBtn = ModernButton.danger("Delete");
         deleteBtn.addActionListener(e -> deleteSelectedCourse());
 
-        ModernButton refreshBtn = ModernButton.outline("↻", AppConfig.PRIMARY_COLOR);
+        ModernButton refreshBtn = ModernButton.outline("Refresh", AppConfig.PRIMARY_COLOR);
         refreshBtn.setToolTipText("Refresh Course List");
         refreshBtn.addActionListener(e -> loadCourses());
 
@@ -100,8 +100,7 @@ public class CourseManagementPanel extends JPanel {
         searchField.setFont(AppConfig.FONT_MEDIUM);
         searchField.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(new Color(0xCBD5E1), 1, true),
-                new EmptyBorder(6, 12, 6, 12)
-        ));
+                new EmptyBorder(6, 12, 6, 12)));
         searchField.putClientProperty("JTextField.placeholderText", "Search by code or title...");
         searchField.addKeyListener(new KeyAdapter() {
             @Override
@@ -142,10 +141,12 @@ public class CourseManagementPanel extends JPanel {
         tableCard.setLayout(new BorderLayout());
         tableCard.setBorder(new EmptyBorder(12, 16, 16, 16));
 
-        String[] cols = {"Code", "Course Name", "Department", "Credits", "Assigned Faculty", "Enrollment", "Status"};
+        String[] cols = { "Code", "Course Name", "Department", "Credits", "Assigned Faculty", "Enrollment", "Status" };
         tableModel = new DefaultTableModel(cols, 0) {
             @Override
-            public boolean isCellEditable(int r, int c) { return false; }
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
         };
 
         table = new JTable(tableModel);
@@ -208,7 +209,8 @@ public class CourseManagementPanel extends JPanel {
     private void applyFilters() {
         String kw = searchField.getText().trim();
         String dept = (String) deptFilterCombo.getSelectedItem();
-        if ("All Departments".equals(dept)) dept = null;
+        if ("All Departments".equals(dept))
+            dept = null;
 
         currentList = courseService.searchCourses(kw, dept);
         tableModel.setRowCount(0);
@@ -222,7 +224,7 @@ public class CourseManagementPanel extends JPanel {
             int enrolled = courseService.getEnrolledCount(c.getId());
             String enrollmentRatio = enrolled + " / " + c.getMaxStudents();
 
-            tableModel.addRow(new Object[]{
+            tableModel.addRow(new Object[] {
                     c.getCourseCode(),
                     c.getCourseName(),
                     c.getDepartment(),
@@ -238,7 +240,8 @@ public class CourseManagementPanel extends JPanel {
 
     private Course getSelectedCourse() {
         int row = table.getSelectedRow();
-        if (row < 0 || row >= currentList.size()) return null;
+        if (row < 0 || row >= currentList.size())
+            return null;
         return currentList.get(row);
     }
 
@@ -251,7 +254,8 @@ public class CourseManagementPanel extends JPanel {
     private void editSelectedCourse() {
         Course selected = getSelectedCourse();
         if (selected == null) {
-            JOptionPane.showMessageDialog(this, "Please select a course to edit.", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a course to edit.", "Selection Required",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
         openCourseForm(selected);
@@ -260,17 +264,18 @@ public class CourseManagementPanel extends JPanel {
     private void deleteSelectedCourse() {
         Course selected = getSelectedCourse();
         if (selected == null) {
-            JOptionPane.showMessageDialog(this, "Please select a course to delete.", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a course to delete.", "Selection Required",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         int confirm = JOptionPane.showConfirmDialog(
                 this,
-                "Are you sure you want to delete course '" + selected.getCourseName() + "' (" + selected.getCourseCode() + ")?",
+                "Are you sure you want to delete course '" + selected.getCourseName() + "' (" + selected.getCourseCode()
+                        + ")?",
                 "Confirm Course Deletion",
                 JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
-        );
+                JOptionPane.WARNING_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
             ServiceResult res = courseService.deleteCourse(selected.getId());
@@ -283,4 +288,3 @@ public class CourseManagementPanel extends JPanel {
         }
     }
 }
-

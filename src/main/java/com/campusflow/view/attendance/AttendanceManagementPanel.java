@@ -104,7 +104,7 @@ public class AttendanceManagementPanel extends JPanel {
         ModernButton markAllAbsentBtn = ModernButton.danger("Mark All Absent");
         markAllAbsentBtn.addActionListener(e -> setAllStatus("ABSENT"));
 
-        ModernButton saveBtn = ModernButton.primary("💾 Save Attendance");
+        ModernButton saveBtn = ModernButton.primary("Save Attendance");
         saveBtn.addActionListener(e -> saveAttendance());
 
         actionBtns.add(markAllPresentBtn);

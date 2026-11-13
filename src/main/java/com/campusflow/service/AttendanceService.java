@@ -7,41 +7,36 @@ import com.campusflow.dao.FacultyDAO;
 import com.campusflow.dao.StudentDAO;
 import com.campusflow.dao.impl.AttendanceDAOImpl;
 import com.campusflow.dao.impl.CourseDAOImpl;
-import com.campusflow.dao.impl.EnrollmentDAOImpl;
 import com.campusflow.dao.impl.FacultyDAOImpl;
-import com.campusflow.dao.impl.StudentDAOImpl;
 import com.campusflow.model.Attendance;
 import com.campusflow.model.Course;
 import com.campusflow.model.Faculty;
 import com.campusflow.model.User;
 
 import java.sql.Date;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class AttendanceService {
     private final AttendanceDAO attendanceDAO;
     private final CourseDAO courseDAO;
-    private final EnrollmentDAO enrollmentDAO;
     private final FacultyDAO facultyDAO;
-    private final StudentDAO studentDAO;
 
     public AttendanceService() {
         this.attendanceDAO = new AttendanceDAOImpl();
         this.courseDAO = new CourseDAOImpl();
-        this.enrollmentDAO = new EnrollmentDAOImpl();
         this.facultyDAO = new FacultyDAOImpl();
-        this.studentDAO = new StudentDAOImpl();
+    }
+
+    public AttendanceService(AttendanceDAO attendanceDAO, CourseDAO courseDAO, FacultyDAO facultyDAO) {
+        this.attendanceDAO = attendanceDAO;
+        this.courseDAO = courseDAO;
+        this.facultyDAO = facultyDAO;
     }
 
     public AttendanceService(AttendanceDAO attendanceDAO, CourseDAO courseDAO, EnrollmentDAO enrollmentDAO,
                              FacultyDAO facultyDAO, StudentDAO studentDAO) {
-        this.attendanceDAO = attendanceDAO;
-        this.courseDAO = courseDAO;
-        this.enrollmentDAO = enrollmentDAO;
-        this.facultyDAO = facultyDAO;
-        this.studentDAO = studentDAO;
+        this(attendanceDAO, courseDAO, facultyDAO);
     }
 
     public List<Attendance> getAttendanceByCourseAndDate(int courseId, Date date) {

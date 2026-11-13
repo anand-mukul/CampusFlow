@@ -76,9 +76,9 @@ public class ReportsPanel extends JPanel {
         tabbedPane.setFont(new Font("SansSerif", Font.BOLD, 13));
         tabbedPane.setBackground(Color.WHITE);
 
-        tabbedPane.addTab("⚠️ Defaulter Watchlist (< 75%)", createDefaulterTab());
-        tabbedPane.addTab("📊 Course Capacity & Enrollment", createEnrollmentTab());
-        tabbedPane.addTab("📈 Course Attendance Summary", createAttendanceTab());
+        tabbedPane.addTab("Defaulter Watchlist (< 75%)", createDefaulterTab());
+        tabbedPane.addTab("Course Capacity & Enrollment", createEnrollmentTab());
+        tabbedPane.addTab("Course Attendance Summary", createAttendanceTab());
 
         add(tabbedPane, BorderLayout.CENTER);
     }

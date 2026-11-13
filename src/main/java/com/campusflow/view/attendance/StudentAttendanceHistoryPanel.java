@@ -6,7 +6,6 @@ import com.campusflow.model.Course;
 import com.campusflow.model.Student;
 import com.campusflow.service.AttendanceService;
 import com.campusflow.service.CourseService;
-import com.campusflow.service.StudentService;
 import com.campusflow.view.components.ModernButton;
 import com.campusflow.view.components.RoundedPanel;
 import com.campusflow.view.components.StatCard;
@@ -19,13 +18,11 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class StudentAttendanceHistoryPanel extends JPanel {
     private final Student student;
     private final AttendanceService attendanceService;
     private final CourseService courseService;
-    private final StudentService studentService;
 
     private JComboBox<CourseItem> courseFilterCombo;
     private StatCard totalSessionsCard;
@@ -48,7 +45,6 @@ public class StudentAttendanceHistoryPanel extends JPanel {
         this.student = student;
         this.attendanceService = new AttendanceService();
         this.courseService = new CourseService();
-        this.studentService = new StudentService();
 
         setLayout(new BorderLayout(0, 16));
         setBackground(AppConfig.BACKGROUND_COLOR);
@@ -99,10 +95,10 @@ public class StudentAttendanceHistoryPanel extends JPanel {
         JPanel metricsGrid = new JPanel(new GridLayout(1, 4, 14, 0));
         metricsGrid.setOpaque(false);
 
-        totalSessionsCard = new StatCard("Conducted Sessions", "0", "Total academic classes", AppConfig.PRIMARY_COLOR, "📅");
-        attendedCard = new StatCard("Present / Attended", "0", "Present in class", AppConfig.SUCCESS_COLOR, "✓");
-        leavesCard = new StatCard("Excused Leaves", "0", "Excluded from deficit", AppConfig.WARNING_COLOR, "ℹ");
-        percentageCard = new StatCard("Attendance Rate", "0.0%", "Formula: P / (Total - L)", AppConfig.ACCENT_COLOR, "📊");
+        totalSessionsCard = new StatCard("Conducted Sessions", "0", "Total academic classes", AppConfig.PRIMARY_COLOR);
+        attendedCard = new StatCard("Present / Attended", "0", "Present in class", AppConfig.SUCCESS_COLOR);
+        leavesCard = new StatCard("Excused Leaves", "0", "Excluded from deficit", AppConfig.WARNING_COLOR);
+        percentageCard = new StatCard("Attendance Rate", "0.0%", "Formula: P / (Total - L)", AppConfig.ACCENT_COLOR);
 
         metricsGrid.add(totalSessionsCard);
         metricsGrid.add(attendedCard);
@@ -215,7 +211,7 @@ public class StudentAttendanceHistoryPanel extends JPanel {
 
         percentageCard.setValue(pct + "%");
         if (pct < 75.0) {
-            percentageCard.setSubtitle("⚠️ Defaulter: Below 75% Criteria");
+            percentageCard.setSubtitle("Defaulter: Below 75% Criteria");
             percentageCard.setAccentColor(AppConfig.DANGER_COLOR);
         } else {
             percentageCard.setSubtitle("Good Standing (>= 75%)");
